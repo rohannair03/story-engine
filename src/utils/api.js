@@ -1,7 +1,7 @@
 import { LORE_DOCUMENT } from './lore.js';
 
 export async function generateStoryResponse(messages) {
-  const response = await fetch('/api/v1/messages', {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -10,7 +10,7 @@ export async function generateStoryResponse(messages) {
       'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-opus-4-6',
       max_tokens: 1024,
       system: LORE_DOCUMENT,
       messages: messages
@@ -23,5 +23,5 @@ export async function generateStoryResponse(messages) {
     throw new Error(data?.error?.message || 'API call failed');
   }
 
-  return data.content[0].text;
+  return data.content[0]?.text || '';
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { generateStoryResponse } from './utils/api.js';
+import { generateStoryResponse } from './utils/parseResponse.js';
 
 function parseResponse(text) {
   const choiceLineMatch = text.match(/1\..+\|.+\|.+/);
