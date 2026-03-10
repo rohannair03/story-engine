@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { generateStoryResponse } from './utils/api.js';
 
 function parseResponse(text) {
@@ -20,16 +20,25 @@ function parseResponse(text) {
 }
 
 export default function App() {
-  const [storyText, setStoryText] = useState('');
+  const [storyLog, setStoryLog] = useState([]);
   const [choices, setChoices] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [started, setStarted] = useState(false);
+  const bottomRef = useRef(null);
+
+  // Auto scroll to bottom after each new scene
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [storyLog, loading]);
 
   const sendMessage = async (userMessage, currentHistory) => {
     setLoading(true);
     setError(null);
+    setChoices([]);
 
     const newHistory = [
       ...currentHistory,
@@ -45,7 +54,12 @@ export default function App() {
         { role: 'assistant', content: responseText }
       ]);
 
-      setStoryText(newStory);
+      // Append new scene to the log
+      setStoryLog(prev => [...prev, {
+        playerChoice: currentHistory.length > 0 ? userMessage : null,
+        scene: newStory
+      }]);
+
       setChoices(newChoices);
     } catch (err) {
       setError(err.message);
@@ -73,31 +87,73 @@ export default function App() {
         </button>
       )}
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      {loading && <p style={{ color: 'grey' }}>...</p>}
-
-      {storyText && (
-        <div>
-          <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.8 }}>
-            {storyText}
-          </p>
-
-          {choices.length > 0 && !loading && (
-            <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {choices.map((choice, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleChoice(choice)}
-                  style={{ padding: '10px 16px', textAlign: 'left', cursor: 'pointer' }}
-                >
-                  {i + 1}. {choice}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+      {error && (
+        <p style={{ color: 'red' }}>{error}</p>
       )}
+
+      {/* Story log — all previous scenes */}
+      <div style={{ marginTop: 24 }}>
+        {storyLog.map((entry, i) => {
+          const isCurrent = i === storyLog.length - 1;
+          return (
+            <div key={i} style={{ marginBottom: 32 }}>
+
+              {/* Player choice that led to this scene */}
+              {entry.playerChoice && (
+                <p style={{
+                  fontStyle: 'italic',
+                  color: '#888',
+                  marginBottom: 12,
+                  paddingLeft: 12,
+                  borderLeft: '2px solid #ddd'
+                }}>
+                  &gt; {entry.playerChoice}
+                </p>
+              )}
+
+              {/* Scene text — faded if not current */}
+              <p style={{
+                whiteSpace: 'pre-wrap',
+                lineHeight: 1.8,
+                opacity: isCurrent ? 1 : 0.45,
+                transition: 'opacity 0.3s'
+              }}>
+                {entry.scene}
+              </p>
+
+              {/* Divider between scenes */}
+              {!isCurrent && (
+                <hr style={{ marginTop: 24, borderColor: '#eee' }} />
+              )}
+            </div>
+          );
+        })}
+
+        {/* Loading indicator */}
+        {loading && (
+          <p style={{ color: '#aaa', fontStyle: 'italic' }}>
+            Kennit presses on...
+          </p>
+        )}
+
+        {/* Choice buttons — only shown for current scene */}
+        {choices.length > 0 && !loading && (
+          <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {choices.map((choice, i) => (
+              <button
+                key={i}
+                onClick={() => handleChoice(choice)}
+                style={{ padding: '10px 16px', textAlign: 'left', cursor: 'pointer' }}
+              >
+                {i + 1}. {choice}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Invisible anchor for auto scroll */}
+        <div ref={bottomRef} />
+      </div>
     </div>
   );
 }
