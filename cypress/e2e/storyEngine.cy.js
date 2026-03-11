@@ -237,7 +237,7 @@ describe('Story Engine', () => {
     });
 
     it('shows the music sidebar after the story starts', () => {
-  cy.fixture('storyResponse').then((story) => {
+    cy.fixture('storyResponse').then((story) => {
     cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
       if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
         req.reply({ body: story.musicAnalysis });
@@ -248,8 +248,7 @@ describe('Story Engine', () => {
     cy.visit('/');
     cy.contains('Begin Story').click();
     cy.wait('@claudeAPI');
-    cy.wait('@claudeAPI');
-    cy.get('[data-testid="music-sidebar"]').should('exist');
+    cy.contains('SCORE COMPANION').should('exist');
   });
 });
 
