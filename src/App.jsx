@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { generateStoryResponse } from './utils/api.js';
 import { parseResponse } from './utils/parseResponse.js';
+import { analyzeSceneMood } from './utils/musicAnalyzer.js';
+import { matchMusic } from './utils/musicMatcher.js';
+import MusicBrief from './components/MusicBrief.jsx';
 
 export default function App() {
   const [storyLog, setStoryLog] = useState([]);
@@ -9,6 +12,9 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [started, setStarted] = useState(false);
+  const [musicBrief, setMusicBrief] = useState(null);
+  const [musicLoading, setMusicLoading] = useState(false);
+  const [musicError, setMusicError] = useState(null);
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -16,6 +22,20 @@ export default function App() {
       bottomRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [storyLog, loading]);
+
+  const analyzeMusicForScene = async (sceneText) => {
+    setMusicLoading(true);
+    setMusicError(null);
+    try {
+      const analysis = await analyzeSceneMood(sceneText);
+      const matches = matchMusic(analysis.moods, analysis.pacing);
+      setMusicBrief({ ...analysis, matches });
+    } catch (err) {
+      setMusicError(err.message);
+    } finally {
+      setMusicLoading(false);
+    }
+  };
 
   const sendMessage = async (userMessage, currentHistory) => {
     setLoading(true);
@@ -42,6 +62,8 @@ export default function App() {
       }]);
 
       setChoices(newChoices);
+      analyzeMusicForScene(newStory);
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -59,75 +81,61 @@ export default function App() {
   };
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: 32 }}>
-      <h1>Story Engine</h1>
+    <div style={{ display: 'flex', gap: 32, maxWidth: 1100, margin: '0 auto', padding: 32 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <h1 style={{ fontFamily: 'Georgia, serif', marginBottom: 24 }}>Story Engine</h1>
 
-      {!started && (
-        <button onClick={startStory} disabled={loading}>
-          Begin Story
-        </button>
-      )}
+        {!started && (
+          <button onClick={startStory} disabled={loading}>
+            Begin Story
+          </button>
+        )}
 
-      {error && (
-        <p style={{ color: 'red' }}>{error}</p>
-      )}
+        {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      <div style={{ marginTop: 24 }}>
-        {storyLog.map((entry, i) => {
-          const isCurrent = i === storyLog.length - 1;
-          return (
-            <div key={i} style={{ marginBottom: 32 }}>
-
-              {entry.playerChoice && (
-                <p style={{
-                  fontStyle: 'italic',
-                  color: '#888',
-                  marginBottom: 12,
-                  paddingLeft: 12,
-                  borderLeft: '2px solid #ddd'
-                }}>
-                  &gt; {entry.playerChoice}
+        <div style={{ marginTop: 24 }}>
+          {storyLog.map((entry, i) => {
+            const isCurrent = i === storyLog.length - 1;
+            return (
+              <div key={i} style={{ marginBottom: 32 }}>
+                {entry.playerChoice && (
+                  <p style={{ fontStyle: 'italic', color: '#888', marginBottom: 12, paddingLeft: 12, borderLeft: '2px solid #ddd', fontFamily: 'Georgia, serif' }}>
+                    &gt; {entry.playerChoice}
+                  </p>
+                )}
+                <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.8, opacity: isCurrent ? 1 : 0.45, transition: 'opacity 0.3s', fontFamily: 'Georgia, serif' }}>
+                  {entry.scene}
                 </p>
-              )}
+                {!isCurrent && (
+                  <hr style={{ marginTop: 24, borderColor: '#eee' }} />
+                )}
+              </div>
+            );
+          })}
 
-              <p style={{
-                whiteSpace: 'pre-wrap',
-                lineHeight: 1.8,
-                opacity: isCurrent ? 1 : 0.45,
-                transition: 'opacity 0.3s'
-              }}>
-                {entry.scene}
-              </p>
+          {loading && (
+            <p style={{ color: '#aaa', fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>
+              Kennit presses on...
+            </p>
+          )}
 
-              {!isCurrent && (
-                <hr style={{ marginTop: 24, borderColor: '#eee' }} />
-              )}
+          {choices.length > 0 && !loading && (
+            <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {choices.map((choice, i) => (
+                <button key={i} onClick={() => handleChoice(choice)} style={{ padding: '10px 16px', textAlign: 'left', cursor: 'pointer' }}>
+                  {i + 1}. {choice}
+                </button>
+              ))}
             </div>
-          );
-        })}
+          )}
 
-        {loading && (
-          <p style={{ color: '#aaa', fontStyle: 'italic' }}>
-            Kennit presses on...
-          </p>
-        )}
-
-        {choices.length > 0 && !loading && (
-          <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {choices.map((choice, i) => (
-              <button
-                key={i}
-                onClick={() => handleChoice(choice)}
-                style={{ padding: '10px 16px', textAlign: 'left', cursor: 'pointer' }}
-              >
-                {i + 1}. {choice}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div ref={bottomRef} />
+          <div ref={bottomRef} />
+        </div>
       </div>
+
+      {started && (
+        <MusicBrief brief={musicBrief} loading={musicLoading} error={musicError} />
+      )}
     </div>
   );
 }
