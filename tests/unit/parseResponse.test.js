@@ -53,4 +53,16 @@ The rain hammers your back.
     expect(result.choices[2]).toBe('Study the cliff face');
   });
 
+  test('parses correctly when model returns only two choices', () => {
+    const input = `The handhold crumbles. You have no time to think.
+
+1. Lunge for the crack above | 2. Press flat against the rock`;
+
+    const result = parseResponse(input);
+    expect(result.choices).toHaveLength(2);
+    expect(result.choices[0]).toBe('Lunge for the crack above');
+    expect(result.choices[1]).toBe('Press flat against the rock');
+    expect(result.storyText).toContain('The handhold crumbles');
+  });
+
 });

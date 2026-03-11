@@ -1,5 +1,5 @@
 export function parseResponse(text) {
-  const choiceLineMatch = text.match(/1\..+\|.+\|.+/);
+  const choiceLineMatch = text.match(/1\..+\|.+/);
   
   if (!choiceLineMatch) {
     return { storyText: text, choices: [] };
