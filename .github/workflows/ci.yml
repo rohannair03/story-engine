@@ -7,7 +7,28 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  jest:
+    name: Jest Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Jest tests
+        run: npm test
+
+  cypress:
+    name: Cypress Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -26,18 +47,15 @@ jobs:
       - name: Install Cypress binary
         run: npx cypress install
 
-      - name: Run Jest tests
-        run: npm test
-
       - name: Build app
         run: npm run build
+        env:
+          VITE_ANTHROPIC_API_KEY: ${{ secrets.VITE_ANTHROPIC_API_KEY }}
 
-      - name: Run Cypress tests
-        uses: cypress-io/github-action@v6
-        with:
-          start: npm run dev
-          wait-on: 'http://localhost:5173'
-          wait-on-timeout: 30
-          install: false
+      - name: Start dev server and run Cypress
+        run: |
+          npm run dev &
+          npx wait-on http://localhost:5173 --timeout 30000
+          npx cypress run
         env:
           VITE_ANTHROPIC_API_KEY: ${{ secrets.VITE_ANTHROPIC_API_KEY }}
