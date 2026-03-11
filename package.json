@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+      "cypress:open": "cypress open",
+  "cypress:run": "cypress run"
   },
   "jest": {
   "testEnvironment": "jsdom",

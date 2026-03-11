@@ -1,23 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { generateStoryResponse } from './utils/parseResponse.js';
-
-function parseResponse(text) {
-  const choiceLineMatch = text.match(/1\..+\|.+\|.+/);
-  
-  if (!choiceLineMatch) {
-    return { storyText: text, choices: [] };
-  }
-
-  const choiceLine = choiceLineMatch[0];
-  const storyText = text.slice(0, text.indexOf(choiceLine)).trim();
-  
-  const choices = choiceLine
-    .split('|')
-    .map(c => c.trim())
-    .map(c => c.replace(/^\d+\.\s*/, '').trim());
-
-  return { storyText, choices };
-}
+import { generateStoryResponse } from './utils/api.js';
+import { parseResponse } from './utils/parseResponse.js';
 
 export default function App() {
   const [storyLog, setStoryLog] = useState([]);
@@ -28,7 +11,6 @@ export default function App() {
   const [started, setStarted] = useState(false);
   const bottomRef = useRef(null);
 
-  // Auto scroll to bottom after each new scene
   useEffect(() => {
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -54,7 +36,6 @@ export default function App() {
         { role: 'assistant', content: responseText }
       ]);
 
-      // Append new scene to the log
       setStoryLog(prev => [...prev, {
         playerChoice: currentHistory.length > 0 ? userMessage : null,
         scene: newStory
@@ -91,14 +72,12 @@ export default function App() {
         <p style={{ color: 'red' }}>{error}</p>
       )}
 
-      {/* Story log — all previous scenes */}
       <div style={{ marginTop: 24 }}>
         {storyLog.map((entry, i) => {
           const isCurrent = i === storyLog.length - 1;
           return (
             <div key={i} style={{ marginBottom: 32 }}>
 
-              {/* Player choice that led to this scene */}
               {entry.playerChoice && (
                 <p style={{
                   fontStyle: 'italic',
@@ -111,7 +90,6 @@ export default function App() {
                 </p>
               )}
 
-              {/* Scene text — faded if not current */}
               <p style={{
                 whiteSpace: 'pre-wrap',
                 lineHeight: 1.8,
@@ -121,7 +99,6 @@ export default function App() {
                 {entry.scene}
               </p>
 
-              {/* Divider between scenes */}
               {!isCurrent && (
                 <hr style={{ marginTop: 24, borderColor: '#eee' }} />
               )}
@@ -129,14 +106,12 @@ export default function App() {
           );
         })}
 
-        {/* Loading indicator */}
         {loading && (
           <p style={{ color: '#aaa', fontStyle: 'italic' }}>
             Kennit presses on...
           </p>
         )}
 
-        {/* Choice buttons — only shown for current scene */}
         {choices.length > 0 && !loading && (
           <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
             {choices.map((choice, i) => (
@@ -151,7 +126,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Invisible anchor for auto scroll */}
         <div ref={bottomRef} />
       </div>
     </div>
