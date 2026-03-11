@@ -10,26 +10,10 @@
     "preview": "vite preview",
     "test": "jest",
     "test:watch": "jest --watch",
-      "cypress:open": "cypress open",
-  "cypress:run": "cypress run"
+    "test:coverage": "jest --coverage",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
-  "jest": {
-  "testEnvironment": "jsdom",
-  "setupFiles": ["cross-fetch/polyfill"],
-  "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
-  "moduleNameMapper": {
-    "\\.(css|less|scss)$": "<rootDir>/__mocks__/styleMock.cjs"
-  },
-  "transform": {
-    "^.+\\.[jt]sx?$": "babel-jest"
-  },
-  "testMatch": [
-    "**/tests/unit/**/*.test.js",
-    "**/tests/unit/**/*.test.jsx",
-    "**/tests/integration/**/*.test.js",
-    "**/tests/integration/**/*.test.jsx"
-  ]
-},
   "dependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

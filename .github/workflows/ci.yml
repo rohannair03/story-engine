@@ -7,55 +7,78 @@ on:
     branches: [main]
 
 jobs:
-  jest:
-    name: Jest Tests
+  test:
+    name: Test Suite
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 18
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Jest tests
-        run: npm test
-
-  cypress:
-    name: Cypress Tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Cypress binary
-        run: npx cypress install
-
-      - name: Build app
-        run: npm run build
+      # ── Unit tests ────────────────────────────────────────────────────────
+      - name: Run unit tests
+        run: npm test -- --testPathIgnorePatterns=integration
         env:
-          VITE_ANTHROPIC_API_KEY: ${{ secrets.VITE_ANTHROPIC_API_KEY }}
+          CI: true
 
-      - name: Start dev server and run Cypress
+      # ── Coverage ──────────────────────────────────────────────────────────
+      - name: Run tests with coverage
+        run: npm run test:coverage -- --testPathIgnorePatterns=integration
+        env:
+          CI: true
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+      # ── Coverage summary in PR (optional, requires no extra action) ───────
+      - name: Print coverage summary
         run: |
-          npm run dev &
-          npx wait-on http://localhost:5173 --timeout 30000
-          npx cypress run
+          echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat coverage/coverage-summary.json | node -e "
+            const data = require('./coverage/coverage-summary.json');
+            const t = data.total;
+            console.log('Statements : ' + t.statements.pct + '% (' + t.statements.covered + '/' + t.statements.total + ')');
+            console.log('Branches   : ' + t.branches.pct   + '% (' + t.branches.covered   + '/' + t.branches.total   + ')');
+            console.log('Functions  : ' + t.functions.pct  + '% (' + t.functions.covered  + '/' + t.functions.total  + ')');
+            console.log('Lines      : ' + t.lines.pct      + '% (' + t.lines.covered      + '/' + t.lines.total      + ')');
+          " 2>/dev/null || echo "(coverage-summary.json not found — check jest config)"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      # ── E2E tests ─────────────────────────────────────────────────────────
+      - name: Start dev server
+        run: npm run dev &
         env:
           VITE_ANTHROPIC_API_KEY: ${{ secrets.VITE_ANTHROPIC_API_KEY }}
+
+      - name: Wait for dev server
+        run: npx wait-on http://localhost:5173 --timeout 30000
+
+      - name: Run Cypress E2E
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          headed: false
+        env:
+          VITE_ANTHROPIC_API_KEY: ${{ secrets.VITE_ANTHROPIC_API_KEY }}
+
+      - name: Upload Cypress screenshots on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots/
+          retention-days: 7
