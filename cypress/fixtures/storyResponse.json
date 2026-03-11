@@ -1,5 +1,26 @@
 {
-  "opening": "You stand at the base of the cliffs. Rain hammers your shoulders as you tilt your head back and stare into the grey void above. The stone is black and slick. Somewhere in your pack, wrapped in oilskin, is the only evidence Aragorn trusted you with. You grip the first handhold and begin.\n\n1. Climb towards the dark shape that might be a cave | 2. Study the cliff face carefully before committing to a route | 3. Check your pack one final time before leaving the ground",
-
-  "choiceResponse": "You scan the cliff face methodically, the way your army training taught you. Three possible routes emerge from the rain and shadow. The leftmost looks faster but exposed. The middle route has more natural handholds. The rightmost disappears into a crack that could be shelter or a dead end.\n\n1. Take the faster exposed route on the left | 2. Use the middle route with better handholds | 3. Investigate the crack on the right"
+  "opening": {
+    "content": [
+      {
+        "type": "text",
+        "text": "You stand at the base of the cliffs, Kennit. The rain has not stopped in seven years.\n\n1. Climb towards the dark shape that might be a cave | Search the cliff face for handholds | Look back at Mirileth one last time"
+      }
+    ]
+  },
+  "choiceResponse": {
+    "content": [
+      {
+        "type": "text",
+        "text": "You climb toward the dark shape, fingers raw against the wet stone. It is a cave.\n\n1. Enter the cave | Rest at the entrance | Mark it on your map"
+      }
+    ]
+  },
+  "musicAnalysis": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"moods\":[\"melancholic\",\"searching\"],\"pacing\":\"slow\"}"
+      }
+    ]
+  }
 }

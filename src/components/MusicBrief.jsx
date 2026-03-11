@@ -1,16 +1,16 @@
 export default function MusicBrief({ brief, loading, error }) {
   if (loading) {
     return (
-      <div style={styles.panel}>
+      <div style={styles.panel} data-testid="music-sidebar">
         <div style={styles.label}>SCORE COMPANION</div>
-        <div style={styles.empty}>Scoring the scene...</div>
+        <div style={styles.empty} data-testid="music-loading">Scoring the scene...</div>
       </div>
     );
   }
 
   if (error || !brief) {
     return (
-      <div style={styles.panel}>
+      <div style={styles.panel} data-testid="music-sidebar">
         <div style={styles.label}>SCORE COMPANION</div>
         <div style={styles.empty}>No score available</div>
       </div>
@@ -22,16 +22,16 @@ export default function MusicBrief({ brief, loading, error }) {
       <div style={styles.label}>SCORE COMPANION</div>
       <div style={styles.moodRow}>
         {brief.moods?.map((mood, i) => (
-          <span key={i} style={styles.moodTag}>{mood}</span>
+          <span key={i} style={styles.moodTag} data-testid="mood-tag">{mood}</span>
         ))}
-        <span style={styles.pacingTag}>{brief.pacing}</span>
+        <span style={styles.pacingTag} data-testid="pacing-tag">{brief.pacing}</span>
       </div>
       <div style={styles.divider} />
       {brief.matches?.map((piece, i) => (
         <div key={i} style={styles.pieceRow}>
           <div style={styles.pieceNumber}>0{i + 1}</div>
           <div style={styles.pieceInfo}>
-            <div style={styles.pieceTitle}>{piece.title}</div>
+            <div style={styles.pieceTitle} data-testid="piece-title">{piece.title}</div>
             <div style={styles.pieceComposer}>{piece.composer}</div>
             <div style={styles.pieceNote}>{piece.notes}</div>
             <div style={styles.pieceLinks}>
