@@ -10,7 +10,7 @@ A browser-based interactive fiction engine built on the Claude API, set in the d
 
 | Layer | URL |
 |---|---|
-| Dev server | `http://localhost:5173` |
+| Dev server | `https://story-engine-zeta.vercel.app/` |
 | CI pipeline | GitHub Actions → see **Actions** tab |
 
 ---
