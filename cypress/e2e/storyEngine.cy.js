@@ -134,12 +134,10 @@ describe('Story Engine', () => {
     cy.contains('Climb towards the dark shape that might be a cave').click();
     cy.wait('@claudeAPI');
 
-    // Get all scene paragraphs and check the first one is faded
+    // Check the inline style attribute directly
     cy.contains('You stand at the base of the cliffs')
-      .invoke('css', 'opacity')
-      .then(opacity => {
-        expect(parseFloat(opacity)).to.be.lessThan(1);
-      });
+      .should('have.attr', 'style')
+      .and('include', 'opacity: 0.45');
   });
 });
 
