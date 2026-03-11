@@ -1,6 +1,4 @@
-const { defineConfig } = require('cypress');
-
-module.exports = defineConfig({
+module.exports = {
   e2e: {
     baseUrl: 'http://localhost:5173',
     supportFile: 'cypress/support/e2e.js',
@@ -10,4 +8,4 @@ module.exports = defineConfig({
     video: false,
     screenshotOnRunFailure: true
   }
-});
+};
