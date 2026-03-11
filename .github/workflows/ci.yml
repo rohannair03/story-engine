@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
 
       - name: Install dependencies
@@ -43,35 +43,32 @@ jobs:
           path: coverage/
           retention-days: 14
 
-      # ── Coverage summary in PR (optional, requires no extra action) ───────
       - name: Print coverage summary
         run: |
           echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          cat coverage/coverage-summary.json | node -e "
-            const data = require('./coverage/coverage-summary.json');
+          node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
             const t = data.total;
             console.log('Statements : ' + t.statements.pct + '% (' + t.statements.covered + '/' + t.statements.total + ')');
             console.log('Branches   : ' + t.branches.pct   + '% (' + t.branches.covered   + '/' + t.branches.total   + ')');
             console.log('Functions  : ' + t.functions.pct  + '% (' + t.functions.covered  + '/' + t.functions.total  + ')');
             console.log('Lines      : ' + t.lines.pct      + '% (' + t.lines.covered      + '/' + t.lines.total      + ')');
-          " 2>/dev/null || echo "(coverage-summary.json not found — check jest config)"
+          " 2>/dev/null || echo "(coverage-summary.json not found)"
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       # ── E2E tests ─────────────────────────────────────────────────────────
-      - name: Start dev server
-        run: npm run dev &
-        env:
-          VITE_ANTHROPIC_API_KEY: ${{ secrets.VITE_ANTHROPIC_API_KEY }}
-
-      - name: Wait for dev server
-        run: npx wait-on http://localhost:5173 --timeout 30000
-
+      # cypress-io/github-action handles starting the dev server and waiting
+      # for it internally — no need for a separate wait-on step
       - name: Run Cypress E2E
         uses: cypress-io/github-action@v6
         with:
           browser: chrome
           headed: false
+          start: npm run dev
+          wait-on: 'http://localhost:5173'
+          wait-on-timeout: 60
         env:
           VITE_ANTHROPIC_API_KEY: ${{ secrets.VITE_ANTHROPIC_API_KEY }}
 
