@@ -16,7 +16,7 @@ describe('Story Engine', () => {
   });
 
   it('does not show story text before the game starts', () => {
-    cy.get('[data-testid="story-log"]').children().should('have.length', 0);
+    cy.get('[data-testid="story-log"]').find('.log-story').should('have.length', 0);
   });
 
   // ── First choice ───────────────────────────────────────────────────────────

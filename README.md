@@ -6,7 +6,7 @@ A browser-based interactive fiction engine built on the Claude API, set in the d
 
 ---
 
-## ✦ Live Demo
+## Live Demo
 
 | Layer | URL |
 |---|---|
@@ -15,7 +15,7 @@ A browser-based interactive fiction engine built on the Claude API, set in the d
 
 ---
 
-## ✦ What It Does
+## What It Does
 
 Players navigate a branching narrative as **Kennit**, a 31-year-old ex-soldier climbing the cliffs outside Mirileth — the last city under Valdris's permanent rain — on a mission the king won't name aloud. The engine:
 
@@ -27,7 +27,7 @@ Players navigate a branching narrative as **Kennit**, a 31-year-old ex-soldier c
 
 ---
 
-## ✦ Stack
+## Stack
 
 ```
 Frontend        React 18 + Vite
@@ -41,7 +41,7 @@ Coverage        Jest --coverage (lcov + text summary) — 98.97% statements
 
 ---
 
-## ✦ Architecture
+## Architecture
 
 ```
 src/
@@ -71,7 +71,7 @@ cypress/e2e/
 
 ---
 
-## ✦ Testing Strategy
+## Testing Strategy
 
 This project was designed to demonstrate layered QA thinking, not just "tests exist."
 
@@ -112,7 +112,7 @@ Non-deterministic LLM responses break conventional assertion patterns. The strat
 
 ---
 
-## ✦ Coverage
+## Coverage
 
 ```
 Statements : 98.97%
@@ -131,7 +131,7 @@ Coverage is also generated in CI on every push to `main`. The lcov report is upl
 
 ---
 
-## ✦ Bugs Caught Through Testing
+## Bugs Caught Through Testing
 
 A log of real issues found during development — included here because catching bugs is the point.
 
@@ -143,7 +143,7 @@ A log of real issues found during development — included here because catching
 
 ---
 
-## ✦ Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -178,7 +178,7 @@ npm run cypress:run    # Cypress headless
 
 ---
 
-## ✦ CI Pipeline
+## CI Pipeline
 
 Every push to `main` and every pull request runs:
 
@@ -197,7 +197,7 @@ Integration tests (live API) are skipped in CI by default to avoid rate limits a
 
 ---
 
-## ✦ AI-Specific QA Considerations
+## AI-Specific QA Considerations
 
 Working with an LLM as the core engine surfaces testing problems that don't appear in conventional software:
 
@@ -215,13 +215,13 @@ Working with an LLM as the core engine surfaces testing problems that don't appe
 
 ---
 
-## ✦ World Context
+## World Context
 
 **Valdris** is a dark-fantasy world under permanent rain — seven years and counting. **Mirileth**, the last standing city, clings to the base of a cliff range no one has ever climbed. The protagonist, **Kennit** (31, ex-soldier, bad knees, worse memories), is halfway up those cliffs on orders from a king who won't say why. The tone draws from Joe Abercrombie's grit and Patrick Rothfuss's sensory density.
 
 ---
 
-## ✦ Roadmap
+## Roadmap
 
 - [x] Phase 1 — Story engine foundation (Vite + React, Claude API, lore system)
 - [x] Phase 2 — Narrative depth (conversation history, choices, story log)
@@ -233,6 +233,6 @@ Working with an LLM as the core engine surfaces testing problems that don't appe
 
 ---
 
-## ✦ License
+## License
 
 MIT
