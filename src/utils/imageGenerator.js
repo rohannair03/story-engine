@@ -20,6 +20,8 @@ export async function generateSceneImage(storyText) {
   }
 
   const imagePrompt = promptData.content[0]?.text || '';
+  console.log('Image prompt:', imagePrompt);
+  console.log('promptData:', JSON.stringify(promptData));
 
   // Step 2: Send that prompt to DALL-E via our proxy
   const imageResponse = await fetch('/api/image', {
