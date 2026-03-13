@@ -224,34 +224,34 @@ const styles = `
 
   /* ── Background layers — pointer-events: none so they never block clicks ── */
   .scene-bg {
-    position: fixed;
-    inset: 0;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    transition: background-image 1.5s ease;
-    z-index: 0;
-    pointer-events: none;
-  }
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  z-index: 0;
+  pointer-events: none;
+}
 
   .scene-bg-overlay {
-    position: fixed;
-    inset: 0;
-    background:
-      linear-gradient(to right,
-        rgba(8, 10, 16, 0.88) 0%,
-        rgba(8, 10, 16, 0.55) 45%,
-        rgba(8, 10, 16, 0.38) 60%,
-        rgba(8, 10, 16, 0.80) 100%
-      ),
-      linear-gradient(to bottom,
-        rgba(8, 10, 16, 0.65) 0%,
-        rgba(8, 10, 16, 0.05) 20%,
-        rgba(8, 10, 16, 0.05) 80%,
-        rgba(8, 10, 16, 0.85) 100%
-      );
-    z-index: 1;
-    pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(to right,
+      rgba(8, 10, 16, 0.82) 0%,
+      rgba(8, 10, 16, 0.45) 45%,
+      rgba(8, 10, 16, 0.30) 60%,
+      rgba(8, 10, 16, 0.75) 100%
+    ),
+    linear-gradient(to bottom,
+      rgba(8, 10, 16, 0.60) 0%,
+      rgba(8, 10, 16, 0.0) 20%,
+      rgba(8, 10, 16, 0.0) 80%,
+      rgba(8, 10, 16, 0.88) 100%
+    );
+  z-index: 1;
+  pointer-events: none;
   }
 
   /* ── Layout ── */
@@ -369,22 +369,19 @@ const styles = `
   .story-log::-webkit-scrollbar-thumb { background: var(--border-solid); border-radius: 2px; }
 
   .log-story {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    transition: opacity 0.3s;
-    padding: 18px 22px;
-    background: rgba(6, 8, 14, 0.72);
-    border-left: 2px solid rgba(138, 111, 48, 0.35);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: opacity 0.3s;
+  padding: 18px 22px;
+  border-left: 2px solid rgba(138, 111, 48, 0.25);
   }
 
   .log-story p {
-    font-size: 15.5px;
-    line-height: 1.85;
-    color: var(--text-primary);
-    text-shadow: 0 1px 10px rgba(0,0,0,0.9);
+  font-size: 15.5px;
+  line-height: 1.85;
+  color: #a09888;
+  text-shadow: 0 1px 12px rgba(0,0,0,1), 0 0 30px rgba(0,0,0,0.8);
   }
 
   .log-choice {
