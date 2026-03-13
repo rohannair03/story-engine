@@ -1,19 +1,13 @@
 import { LORE_DOCUMENT } from './lore.js';
 
 export async function generateStoryResponse(messages) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch('/api/chat', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'claude-opus-4-6',
-      max_tokens: 1024,
-      system: LORE_DOCUMENT,
-      messages: messages
+      system: LORE_DOCUMENT
     })
   });
 

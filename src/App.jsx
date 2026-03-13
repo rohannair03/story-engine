@@ -4,6 +4,7 @@ import { parseResponse } from './utils/parseResponse.js';
 import { analyzeSceneMood } from './utils/musicAnalyzer.js';
 import { matchMusic } from './utils/musicMatcher.js';
 import MusicBrief from './components/MusicBrief.jsx';
+import { generateSceneImage } from './utils/imageGenerator.js';
 
 const INITIAL_CHOICES = [
   "Begin the ascent",
@@ -22,6 +23,8 @@ export default function App() {
   const [musicLoading, setMusicLoading] = useState(false);
   const [musicError, setMusicError] = useState(null);
   const bottomRef = useRef(null);
+  const [sceneImage, setSceneImage] = useState(null);
+  const [imageLoading, setImageLoading] = useState(false);
 
   useEffect(() => {
     if (bottomRef.current) {
@@ -43,40 +46,48 @@ export default function App() {
     }
   };
 
-  const sendMessage = async (userMessage, currentHistory) => {
-    setLoading(true);
-    setError(null);
-    setChoices([]);
+const sendMessage = async (userMessage, currentHistory) => {
+  setLoading(true);
+  setError(null);
+  setChoices([]);
+  setSceneImage(null);
+  setImageLoading(true);
 
-    const newHistory = [
-      ...currentHistory,
-      { role: 'user', content: userMessage }
-    ];
+  const newHistory = [
+    ...currentHistory,
+    { role: 'user', content: userMessage }
+  ];
 
-    try {
-      const responseText = await generateStoryResponse(newHistory);
-      const { storyText: newStory, choices: newChoices } = parseResponse(responseText);
+  try {
+    const responseText = await generateStoryResponse(newHistory);
+    const { storyText: newStory, choices: newChoices } = parseResponse(responseText);
 
-      setHistory([
-        ...newHistory,
-        { role: 'assistant', content: responseText }
-      ]);
+    setHistory([
+      ...newHistory,
+      { role: 'assistant', content: responseText }
+    ]);
 
-      setStoryLog(prev => [...prev, {
-        playerChoice: currentHistory.length > 0 ? userMessage : null,
-        scene: newStory
-      }]);
+    setStoryLog(prev => [...prev, {
+      playerChoice: currentHistory.length > 0 ? userMessage : null,
+      scene: newStory
+    }]);
 
-      setChoices(newChoices.length > 0 ? newChoices : INITIAL_CHOICES);
-      analyzeMusicForScene(newStory);
+    setChoices(newChoices.length > 0 ? newChoices : INITIAL_CHOICES);
+    analyzeMusicForScene(newStory);
 
-    } catch (err) {
-      setError('The story faltered. Check your connection and try again.');
-      setChoices(INITIAL_CHOICES);
-    } finally {
-      setLoading(false);
-    }
-  };
+    generateSceneImage(newStory)
+      .then(url => setSceneImage(url))
+      .catch(() => setSceneImage(null))
+      .finally(() => setImageLoading(false));
+
+  } catch (err) {
+    setError('The story faltered. Check your connection and try again.');
+    setChoices(INITIAL_CHOICES);
+    setImageLoading(false);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleChoice = (choice) => {
     setStarted(true);
@@ -140,6 +151,23 @@ export default function App() {
 
           <div ref={bottomRef} />
         </div>
+
+        {/* ── Scene Image ───────────────────────────────────── */}
+        {(sceneImage || imageLoading) && (
+          <div className="scene-image-area">
+            {imageLoading && (
+              <div className="image-loading">Painting the scene...</div>
+                                                    )}
+            {sceneImage && !imageLoading && (
+            <img
+            src={sceneImage}
+            alt="Scene illustration"
+            className="scene-image"
+            data-testid="scene-image"
+            />
+          )}
+          </div>
+          )}
 
         {/* Error */}
         {error && (
@@ -361,6 +389,28 @@ const styles = `
     color: #c47a7a;
     letter-spacing: 0.03em;
   }
+
+  .scene-image-area {
+  padding: 0 36px 16px;
+  flex-shrink: 0;
+}
+
+.image-loading {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--gold-dim);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 12px 0;
+}
+
+.scene-image {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  display: block;
+}
 
   .choices-area {
     padding: 16px 36px 24px;
