@@ -1,4 +1,8 @@
 module.exports = async function handler(req, res) {
+  console.log('Method:', req.method);
+  console.log('Body type:', typeof req.body);
+  console.log('Body:', JSON.stringify(req.body));
+  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -14,6 +18,7 @@ module.exports = async function handler(req, res) {
   }
 
   const { messages, system } = body || {};
+  console.log('Messages:', messages ? messages.length : 'undefined');
 
   if (!messages) {
     return res.status(400).json({ error: 'messages is required' });
