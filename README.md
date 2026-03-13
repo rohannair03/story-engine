@@ -6,54 +6,69 @@ A browser-based interactive fiction engine built on the Claude API, set in the d
 
 ---
 
-## Live Demo
+## ✦ Live Demo
 
-| Layer | URL |
+**[story-engine-zeta.vercel.app](https://story-engine-zeta.vercel.app)**
+
+| Layer | Details |
 |---|---|
-| Dev server | `https://story-engine-zeta.vercel.app/` |
+| Deployment | Vercel (auto-deploys on push to `main`) |
 | CI pipeline | GitHub Actions → see **Actions** tab |
 
 ---
 
-## What It Does
+## ✦ What It Does
 
 Players navigate a branching narrative as **Kennit**, a 31-year-old ex-soldier climbing the cliffs outside Mirileth — the last city under Valdris's permanent rain — on a mission the king won't name aloud. The engine:
 
-- Generates contextually coherent story beats via the Claude API (Haiku 3.5)
+- Generates contextually coherent story beats via the Claude API
 - Presents three choices after every beat, parsed from the model's response
 - Maintains full conversation history so the narrative remembers what happened
 - Injects persistent world lore into every prompt to keep Valdris consistent
+- Generates a **scene illustration** via DALL-E 3 after each story beat, constrained by a visual style prompt that locks the aesthetic to dark fantasy oil painting
+- Displays each scene's image as a full-bleed background — scrolling through history crossfades to each entry's associated image
 - Runs a **Score Companion** sidebar that analyzes each story beat's mood and pacing, then recommends a matching classical piece from a curated database of 20 works
+- Routes all API calls through **Vercel serverless functions**, keeping both the Anthropic and OpenAI keys server-side
 
 ---
 
-## Stack
+## ✦ Stack
 
 ```
 Frontend        React 18 + Vite
-AI              Anthropic Claude API (claude-haiku-3-5 for story and music analysis)
+AI — Story      Anthropic Claude API (claude-opus-4-6)
+AI — Music      Anthropic Claude API (claude-haiku-4-5)
+AI — Images     OpenAI DALL-E 3
+Proxy           Vercel Serverless Functions (api/chat.js, api/image.js)
 Styling         Vanilla CSS-in-JS, Valdris dark theme tokens
 Unit tests      Jest + jsdom + React Testing Library
 E2E tests       Cypress
 CI/CD           GitHub Actions
-Coverage        Jest --coverage (lcov + text summary) — 98.97% statements
+Coverage        Jest --coverage — 98.97% statement coverage
 ```
 
 ---
 
-## Architecture
+## ✦ Architecture
 
 ```
+api/                          Vercel serverless functions (server-side key proxy)
+├── chat.js                   Proxies requests to Anthropic API
+└── image.js                  Proxies requests to OpenAI DALL-E
+
 src/
-├── App.jsx                   Main story engine + layout
+├── App.jsx                   Main story engine + layout + IntersectionObserver
 ├── components/
 │   └── MusicBrief.jsx        Score Companion sidebar
 └── utils/
-    ├── api.js                Claude API wrapper (story generation)
-    ├── musicAnalyzer.js      Haiku: extracts mood + pacing tags from story text
+    ├── api.js                Story generation — calls /api/chat
+    ├── musicAnalyzer.js      Mood/pacing analysis — calls /api/chat
     ├── musicMatcher.js       Weighted scoring algorithm → best-fit piece
     ├── musicDatabase.js      20 classical pieces with mood/pacing metadata
-    └── lore.js               Valdris world lore injected into every prompt
+    ├── imageGenerator.js     Image generation — calls /api/chat then /api/image
+    ├── imageStyle.js         Visual lore prompt constraining DALL-E output
+    ├── lore.js               World lore injected into every story prompt
+    └── parseResponse.js      Parses pipe-separated choices from model response
 
 tests/
 ├── unit/
@@ -71,7 +86,7 @@ cypress/e2e/
 
 ---
 
-## Testing Strategy
+## ✦ Testing Strategy
 
 This project was designed to demonstrate layered QA thinking, not just "tests exist."
 
@@ -85,6 +100,7 @@ Non-deterministic LLM responses break conventional assertion patterns. The strat
 | Prompt quality is hard to test | Unit-test the **lore injection** and **history assembly** separately from the API call |
 | Music analysis depends on LLM | Test the **scoring algorithm** in isolation with fixed mock inputs |
 | CI can't afford real API calls on every push | Integration tests are **opt-in** via `RUN_INTEGRATION_TESTS=true` env var |
+| Image quality is subjective | Assert on **structural outcomes** (URL returned, loading state, history attachment) not visual content |
 
 ### Test layers
 
@@ -112,7 +128,44 @@ Non-deterministic LLM responses break conventional assertion patterns. The strat
 
 ---
 
-## Coverage
+## ✦ Image Generation Testing Roadmap
+
+Image generation introduces testing challenges that don't exist in conventional software. This section documents the planned test strategy for `imageGenerator.js` and the serverless proxy functions.
+
+### What can be tested
+
+**Unit tests for `imageGenerator.js`** (planned)
+- Mock both `/api/chat` and `/api/image` fetch calls
+- Assert that `IMAGE_STYLE_PROMPT` is passed as the system prompt to `/api/chat`
+- Assert that the story text is passed as the user message
+- Assert that the image prompt returned by Claude is forwarded to `/api/image`
+- Assert that the URL returned by `/api/image` is what the function returns to the caller
+- Assert error handling when the Claude prompt generation call fails
+- Assert error handling when the DALL-E call fails
+
+**Unit tests for serverless handlers** (planned)
+- Import `api/chat.js` and `api/image.js` directly and call them with mock `req`/`res` objects
+- Assert 405 on non-POST requests
+- Assert 400 when required fields (`messages`, `prompt`) are missing
+- Assert correct forwarding of the model parameter
+- Assert response shape on mocked successful upstream calls
+
+**E2E tests** (planned)
+- Assert that the `.scene-bg` background-image style gets populated after a choice is made
+- Assert that the `painting the scene...` indicator appears during generation and disappears after
+- Assert that scrolling up to a previous entry changes the background image (IntersectionObserver behaviour)
+- Assert graceful degradation when image generation fails — story and choices still render
+
+### What cannot be meaningfully tested automatically
+
+- **Visual quality** — whether the image looks good for the scene is subjective. Mitigation: manual playtesting per deploy.
+- **Style consistency** — whether DALL-E honoured the visual lore prompt (dark fantasy, muted palette, rain). Mitigation: the `imageStyle.js` prompt is version-controlled; prompt changes are reviewed as code changes.
+- **Semantic match** — whether the image reflects the story beat content. Mitigation: manual review.
+- **Live API reliability** — DALL-E latency and availability. Mitigation: graceful error handling in `imageGenerator.js` so failures don't break the story flow.
+
+---
+
+## ✦ Coverage
 
 ```
 Statements : 98.97%
@@ -120,6 +173,8 @@ Branches   : 84.44%
 Functions  : 100%
 Lines      : 98.91%
 ```
+
+Note: `imageGenerator.js`, `api/chat.js`, and `api/image.js` are currently excluded from coverage collection pending the unit tests described in the roadmap above.
 
 Run locally:
 
@@ -131,7 +186,7 @@ Coverage is also generated in CI on every push to `main`. The lcov report is upl
 
 ---
 
-## Bugs Caught Through Testing
+## ✦ Bugs Caught Through Testing
 
 A log of real issues found during development — included here because catching bugs is the point.
 
@@ -140,20 +195,23 @@ A log of real issues found during development — included here because catching
 | `MusicBrief` always showed "No score available" | Manual playtesting | New `App.jsx` was passing `storyText` prop; component expected `brief/loading/error` |
 | Choices never updated after first beat | Manual playtesting | Inline `parseChoices` in new `App.jsx` expected newline-separated choices; lore prompt specifies pipe format |
 | `parseResponse` silently returned 0 choices for 2-choice responses | Unit test (new edge case) | Regex required two pipes; fixed to require one or more |
+| `messages` dropped from API proxy request body | Vercel function logs | `JSON.stringify` call in `api.js` was missing the `messages` field after refactor |
+| Story broke after proxy migration | Vercel function logs | `musicAnalyzer.js` was still calling Anthropic directly with old `VITE_` key |
 
 ---
 
-## Getting Started
+## ✦ Getting Started
 
 ### Prerequisites
 
 - Node 18+
 - An Anthropic API key → [console.anthropic.com](https://console.anthropic.com)
+- An OpenAI API key → [platform.openai.com](https://platform.openai.com)
 
 ### Install
 
 ```bash
-git clone https://github.com/<your-username>/story-engine
+git clone https://github.com/rohannair03/story-engine
 cd story-engine
 npm install
 ```
@@ -162,23 +220,26 @@ npm install
 
 ```bash
 cp .env.example .env
-# Add your key:
-# VITE_ANTHROPIC_API_KEY=sk-ant-...
+# Add your keys:
+# ANTHROPIC_API_KEY=sk-ant-...
+# OPENAI_API_KEY=sk-...
 ```
 
 ### Run
 
 ```bash
-npm run dev            # Dev server at localhost:5173
-npm test               # Jest unit + integration
+vercel dev          # Full local dev with serverless functions
+npm test            # Jest unit + integration
 npm run test:coverage  # Jest with coverage report
 npm run cypress:open   # Cypress (requires dev server running)
 npm run cypress:run    # Cypress headless
 ```
 
+Note: `npm run dev` (Vite only) works for UI development but image generation and music analysis will fail locally without the serverless proxy. Use `vercel dev` for full functionality.
+
 ---
 
-## CI Pipeline
+## ✦ CI Pipeline
 
 Every push to `main` and every pull request runs:
 
@@ -197,7 +258,7 @@ Integration tests (live API) are skipped in CI by default to avoid rate limits a
 
 ---
 
-## AI-Specific QA Considerations
+## ✦ AI-Specific QA Considerations
 
 Working with an LLM as the core engine surfaces testing problems that don't appear in conventional software:
 
@@ -207,32 +268,37 @@ Working with an LLM as the core engine surfaces testing problems that don't appe
 
 3. **Rate limits and latency** — API calls are slow and fallible in ways local code isn't. Mitigation: mock the API in unit/component tests; only hit the real endpoint in gated integration tests.
 
-4. **Model drift** — The same prompt may yield different results after an Anthropic model update. Mitigation: pin model version strings (`claude-haiku-3-5`) in the API wrapper.
+4. **Model drift** — The same prompt may yield different results after a model update. Mitigation: pin model version strings in the API wrapper.
 
 5. **Context window management** — Conversation history grows unbounded. Mitigation: test that history assembly logic doesn't drop the most recent turn.
 
 6. **Prompt/parser contract** — The output format is defined in the lore prompt, but parsers are written separately. If they drift apart, tests pass but the app silently breaks. Mitigation: integration tests that run the full prompt → parse pipeline end to end.
 
+7. **Multi-model pipelines** — Image generation uses two sequential AI calls (Claude → DALL-E). Failures can occur at either step, and the failure mode differs. Mitigation: test each step in isolation with mocks; handle errors at each boundary independently.
+
+8. **Visual style consistency** — The `imageStyle.js` prompt constrains DALL-E output to the Valdris aesthetic, but model updates can shift behaviour. Mitigation: version-control the style prompt; treat it as a specification document.
+
 ---
 
-## World Context
+## ✦ World Context
 
 **Valdris** is a dark-fantasy world under permanent rain — seven years and counting. **Mirileth**, the last standing city, clings to the base of a cliff range no one has ever climbed. The protagonist, **Kennit** (31, ex-soldier, bad knees, worse memories), is halfway up those cliffs on orders from a king who won't say why. The tone draws from Joe Abercrombie's grit and Patrick Rothfuss's sensory density.
 
 ---
 
-## Roadmap
+## ✦ Roadmap
 
 - [x] Phase 1 — Story engine foundation (Vite + React, Claude API, lore system)
 - [x] Phase 2 — Narrative depth (conversation history, choices, story log)
 - [x] Phase 3 — QA infrastructure (Jest + Cypress + GitHub Actions)
 - [x] Phase 4 — Score Companion (mood/pacing analysis, classical music sidebar)
-- [x] Phase 8 — Polish & portfolio prep (theme, README, coverage reporting, component tests)
+- [x] Phase 6 — Image generation (DALL-E 3, visual lore prompt, per-scene history, serverless proxy)
+- [x] Phase 8 — Polish & portfolio prep (Valdris theme, README, coverage reporting, component tests)
+- [ ] Image generation tests (unit tests for imageGenerator.js and serverless handlers)
 - [ ] Phase 5 — Music layer depth (adaptive layering, transitions)
-- [ ] Phase 6 — Image generation (scene illustration per beat)
 
 ---
 
-## License
+## ✦ License
 
 MIT
