@@ -7,14 +7,15 @@ export async function generateStoryResponse(messages) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      system: LORE_DOCUMENT
+      system: LORE_DOCUMENT,
+      messages
     })
   });
 
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data?.error?.message || 'API call failed');
+    throw new Error(data?.error || 'API call failed');
   }
 
   return data.content[0]?.text || '';
