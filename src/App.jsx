@@ -96,7 +96,7 @@ export default function App() {
   return (
     <div className="app-shell">
 
-      {/* ── Background image layer ─────────────────────────── */}
+      {/* ── Background layers (pointer-events: none so they don't block clicks) */}
       <div
         className="scene-bg"
         style={{ backgroundImage: sceneImage ? `url(${sceneImage})` : 'none' }}
@@ -203,8 +203,6 @@ const styles = `
 
   :root {
     --bg-base:      #0d0f14;
-    --bg-surface:   rgba(10, 12, 18, 0.82);
-    --bg-elevated:  rgba(20, 24, 34, 0.75);
     --border:       rgba(60, 70, 90, 0.5);
     --border-solid: #2a2e3d;
     --text-primary: #e8e0d0;
@@ -224,15 +222,16 @@ const styles = `
     color: var(--text-primary);
   }
 
-  /* ── Background image ── */
+  /* ── Background layers — pointer-events: none so they never block clicks ── */
   .scene-bg {
     position: fixed;
     inset: 0;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    transition: background-image 1.2s ease;
+    transition: background-image 1.5s ease;
     z-index: 0;
+    pointer-events: none;
   }
 
   .scene-bg-overlay {
@@ -240,18 +239,19 @@ const styles = `
     inset: 0;
     background:
       linear-gradient(to right,
-        rgba(8, 10, 16, 0.94) 0%,
-        rgba(8, 10, 16, 0.78) 40%,
-        rgba(8, 10, 16, 0.55) 60%,
-        rgba(8, 10, 16, 0.88) 100%
+        rgba(8, 10, 16, 0.88) 0%,
+        rgba(8, 10, 16, 0.55) 45%,
+        rgba(8, 10, 16, 0.38) 60%,
+        rgba(8, 10, 16, 0.80) 100%
       ),
       linear-gradient(to bottom,
-        rgba(8, 10, 16, 0.75) 0%,
-        rgba(8, 10, 16, 0.15) 25%,
-        rgba(8, 10, 16, 0.15) 75%,
-        rgba(8, 10, 16, 0.92) 100%
+        rgba(8, 10, 16, 0.65) 0%,
+        rgba(8, 10, 16, 0.05) 20%,
+        rgba(8, 10, 16, 0.05) 80%,
+        rgba(8, 10, 16, 0.85) 100%
       );
     z-index: 1;
+    pointer-events: none;
   }
 
   /* ── Layout ── */
@@ -272,25 +272,30 @@ const styles = `
     overflow: hidden;
     background: transparent;
     border-right: 1px solid var(--border);
+    position: relative;
+    z-index: 2;
   }
 
   .sidebar-pane {
     width: 340px;
     flex-shrink: 0;
     overflow-y: auto;
-    background: rgba(10, 12, 18, 0.88);
+    background: rgba(8, 10, 16, 0.90);
     padding: 24px 16px;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 2;
   }
 
   /* ── Header ── */
   .story-header {
     padding: 28px 36px 20px;
-    background: linear-gradient(to bottom, rgba(8,10,16,0.96), rgba(8,10,16,0.5));
+    background: linear-gradient(to bottom, rgba(8,10,16,0.92) 60%, transparent);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
-    backdrop-filter: blur(4px);
+    position: relative;
+    z-index: 2;
   }
 
   .header-eyebrow {
@@ -330,10 +335,13 @@ const styles = `
   .opening-card {
     margin: 24px 36px 0;
     padding: 20px 24px;
-    background: rgba(14, 17, 26, 0.72);
+    background: rgba(10, 12, 18, 0.75);
     border: 1px solid var(--border);
     border-left: 3px solid var(--gold-dim);
     backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    position: relative;
+    z-index: 2;
   }
 
   .opening-text {
@@ -353,6 +361,8 @@ const styles = `
     gap: 20px;
     scrollbar-width: thin;
     scrollbar-color: var(--border-solid) transparent;
+    position: relative;
+    z-index: 2;
   }
 
   .story-log::-webkit-scrollbar { width: 4px; }
@@ -364,7 +374,7 @@ const styles = `
     gap: 14px;
     transition: opacity 0.3s;
     padding: 18px 22px;
-    background: rgba(6, 8, 14, 0.68);
+    background: rgba(6, 8, 14, 0.72);
     border-left: 2px solid rgba(138, 111, 48, 0.35);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -432,6 +442,8 @@ const styles = `
     text-transform: uppercase;
     color: var(--gold-dim);
     flex-shrink: 0;
+    position: relative;
+    z-index: 2;
   }
 
   .painting-dot {
@@ -454,7 +466,8 @@ const styles = `
     font-size: 12px;
     color: #c47a7a;
     letter-spacing: 0.03em;
-    backdrop-filter: blur(4px);
+    position: relative;
+    z-index: 2;
   }
 
   /* ── Choices ── */
@@ -465,9 +478,11 @@ const styles = `
     gap: 8px;
     flex-shrink: 0;
     border-top: 1px solid var(--border);
-    background: linear-gradient(to top, rgba(8,10,16,0.96), rgba(8,10,16,0.65));
+    background: linear-gradient(to top, rgba(8,10,16,0.94) 50%, rgba(8,10,16,0.5));
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 2;
   }
 
   .choice-btn {
@@ -476,7 +491,7 @@ const styles = `
     gap: 14px;
     width: 100%;
     padding: 11px 16px;
-    background: rgba(16, 20, 30, 0.65);
+    background: rgba(14, 18, 28, 0.70);
     border: 1px solid var(--border);
     border-left: 2px solid var(--gold-dim);
     color: var(--text-primary);
@@ -486,13 +501,14 @@ const styles = `
     text-align: left;
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s, color 0.15s;
-    backdrop-filter: blur(4px);
+    position: relative;
+    z-index: 2;
   }
 
   .choice-btn:hover:not(:disabled) {
     border-color: var(--gold);
     border-left-color: var(--gold);
-    background: rgba(30, 34, 48, 0.85);
+    background: rgba(30, 34, 48, 0.88);
     color: var(--gold);
   }
 
