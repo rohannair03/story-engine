@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { generateStoryResponse } from './utils/api.js';
 import { parseResponse } from './utils/parseResponse.js';
 import { analyzeSceneMood } from './utils/musicAnalyzer.js';
@@ -22,15 +22,45 @@ export default function App() {
   const [musicBrief, setMusicBrief] = useState(null);
   const [musicLoading, setMusicLoading] = useState(false);
   const [musicError, setMusicError] = useState(null);
-  const [sceneImage, setSceneImage] = useState(null);
   const [imageLoading, setImageLoading] = useState(false);
-  const bottomRef = useRef(null);
+  const [activeImage, setActiveImage] = useState(null); // currently visible bg image
 
+  const bottomRef = useRef(null);
+  const storyLogRef = useRef(null);
+  const entryRefs = useRef([]); // refs for each story entry div
+
+  // Auto-scroll to bottom on new entries
   useEffect(() => {
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [storyLog, loading]);
+
+  // IntersectionObserver — watch which entry is most visible, set its image as bg
+  useEffect(() => {
+    if (storyLog.length === 0) return;
+
+    const observers = [];
+
+    entryRefs.current.forEach((el, i) => {
+      if (!el) return;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && storyLog[i]?.image) {
+            setActiveImage(storyLog[i].image);
+          }
+        },
+        {
+          root: storyLogRef.current,
+          threshold: 0.4, // entry must be 40% visible to trigger
+        }
+      );
+      observer.observe(el);
+      observers.push(observer);
+    });
+
+    return () => observers.forEach(o => o.disconnect());
+  }, [storyLog]);
 
   const analyzeMusicForScene = async (sceneText) => {
     setMusicLoading(true);
@@ -66,17 +96,26 @@ export default function App() {
         { role: 'assistant', content: responseText }
       ]);
 
+      // Add entry with image: null — will be filled when DALL-E responds
+      const entryIndex = storyLog.length;
       setStoryLog(prev => [...prev, {
         playerChoice: currentHistory.length > 0 ? userMessage : null,
-        scene: newStory
+        scene: newStory,
+        image: null
       }]);
 
       setChoices(newChoices.length > 0 ? newChoices : INITIAL_CHOICES);
       analyzeMusicForScene(newStory);
 
+      // Generate image and attach it to this specific entry
       generateSceneImage(newStory)
-        .then(url => setSceneImage(url))
-        .catch(() => setSceneImage(null))
+        .then(url => {
+          setStoryLog(prev => prev.map((entry, i) =>
+            i === entryIndex ? { ...entry, image: url } : entry
+          ));
+          setActiveImage(url); // show it immediately as the current bg
+        })
+        .catch(() => {})
         .finally(() => setImageLoading(false));
 
     } catch (err) {
@@ -96,10 +135,10 @@ export default function App() {
   return (
     <div className="app-shell">
 
-      {/* ── Background layers (pointer-events: none so they don't block clicks) */}
+      {/* ── Background image — driven by activeImage ───────── */}
       <div
         className="scene-bg"
-        style={{ backgroundImage: sceneImage ? `url(${sceneImage})` : 'none' }}
+        style={{ backgroundImage: activeImage ? `url(${activeImage})` : 'none' }}
       />
       <div className="scene-bg-overlay" />
 
@@ -128,18 +167,22 @@ export default function App() {
           </div>
         )}
 
-        <div className="story-log" data-testid="story-log">
+        <div className="story-log" ref={storyLogRef} data-testid="story-log">
           {storyLog.map((entry, i) => {
             const isCurrent = i === storyLog.length - 1;
             return (
-              <div key={i}>
+              <div
+                key={i}
+                ref={el => entryRefs.current[i] = el}
+                className="story-entry"
+              >
                 {entry.playerChoice && (
                   <div className="log-choice">
                     <span className="choice-arrow">›</span>
                     {entry.playerChoice}
                   </div>
                 )}
-                <div className="log-story" style={{ opacity: isCurrent ? 1 : 0.4 }}>
+                <div className="log-story" style={{ opacity: isCurrent ? 1 : 0.45 }}>
                   {entry.scene.split('\n\n').map((para, j) => (
                     <p key={j}>{para}</p>
                   ))}
@@ -222,36 +265,50 @@ const styles = `
     color: var(--text-primary);
   }
 
-  /* ── Background layers — pointer-events: none so they never block clicks ── */
+  /* ── Background layers ── */
   .scene-bg {
-  position: fixed;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  z-index: 0;
-  pointer-events: none;
-}
+    position: fixed;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
+    pointer-events: none;
+    transition: background-image 0s;
+  }
+
+  /* Use a pseudo-element for the crossfade transition */
+  .scene-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: inherit;
+    animation: imageFadeIn 1.2s ease forwards;
+  }
+
+  @keyframes imageFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
 
   .scene-bg-overlay {
-  position: fixed;
-  inset: 0;
-  background:
-    linear-gradient(to right,
-      rgba(8, 10, 16, 0.82) 0%,
-      rgba(8, 10, 16, 0.45) 45%,
-      rgba(8, 10, 16, 0.30) 60%,
-      rgba(8, 10, 16, 0.75) 100%
-    ),
-    linear-gradient(to bottom,
-      rgba(8, 10, 16, 0.60) 0%,
-      rgba(8, 10, 16, 0.0) 20%,
-      rgba(8, 10, 16, 0.0) 80%,
-      rgba(8, 10, 16, 0.88) 100%
-    );
-  z-index: 1;
-  pointer-events: none;
+    position: fixed;
+    inset: 0;
+    background:
+      linear-gradient(to right,
+        rgba(8, 10, 16, 0.88) 0%,
+        rgba(8, 10, 16, 0.52) 40%,
+        rgba(8, 10, 16, 0.35) 58%,
+        rgba(8, 10, 16, 0.82) 100%
+      ),
+      linear-gradient(to bottom,
+        rgba(8, 10, 16, 0.65) 0%,
+        rgba(8, 10, 16, 0.05) 18%,
+        rgba(8, 10, 16, 0.05) 82%,
+        rgba(8, 10, 16, 0.90) 100%
+      );
+    z-index: 1;
+    pointer-events: none;
   }
 
   /* ── Layout ── */
@@ -335,7 +392,7 @@ const styles = `
   .opening-card {
     margin: 24px 36px 0;
     padding: 20px 24px;
-    background: rgba(10, 12, 18, 0.75);
+    background: rgba(10, 12, 18, 0.72);
     border: 1px solid var(--border);
     border-left: 3px solid var(--gold-dim);
     backdrop-filter: blur(6px);
@@ -358,7 +415,7 @@ const styles = `
     padding: 20px 36px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 28px;
     scrollbar-width: thin;
     scrollbar-color: var(--border-solid) transparent;
     position: relative;
@@ -368,20 +425,26 @@ const styles = `
   .story-log::-webkit-scrollbar { width: 4px; }
   .story-log::-webkit-scrollbar-thumb { background: var(--border-solid); border-radius: 2px; }
 
+  .story-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
   .log-story {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  transition: opacity 0.3s;
-  padding: 18px 22px;
-  border-left: 2px solid rgba(138, 111, 48, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: opacity 0.3s;
+    padding: 4px 0 4px 16px;
+    border-left: 2px solid rgba(138, 111, 48, 0.25);
   }
 
   .log-story p {
-  font-size: 15.5px;
-  line-height: 1.85;
-  color: #a09888;
-  text-shadow: 0 1px 12px rgba(0,0,0,1), 0 0 30px rgba(0,0,0,0.8);
+    font-size: 15.5px;
+    line-height: 1.85;
+    color: #b8b0a0;
+    text-shadow: 0 1px 14px rgba(0,0,0,1), 0 0 40px rgba(0,0,0,0.9);
   }
 
   .log-choice {
@@ -395,7 +458,6 @@ const styles = `
     padding: 6px 0;
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
-    margin-bottom: 8px;
   }
 
   .choice-arrow {
@@ -475,7 +537,7 @@ const styles = `
     gap: 8px;
     flex-shrink: 0;
     border-top: 1px solid var(--border);
-    background: linear-gradient(to top, rgba(8,10,16,0.94) 50%, rgba(8,10,16,0.5));
+    background: linear-gradient(to top, rgba(8,10,16,0.96) 50%, rgba(8,10,16,0.5));
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     position: relative;
@@ -488,7 +550,7 @@ const styles = `
     gap: 14px;
     width: 100%;
     padding: 11px 16px;
-    background: rgba(14, 18, 28, 0.70);
+    background: rgba(14, 18, 28, 0.65);
     border: 1px solid var(--border);
     border-left: 2px solid var(--gold-dim);
     color: var(--text-primary);
