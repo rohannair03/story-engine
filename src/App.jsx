@@ -22,9 +22,9 @@ export default function App() {
   const [musicBrief, setMusicBrief] = useState(null);
   const [musicLoading, setMusicLoading] = useState(false);
   const [musicError, setMusicError] = useState(null);
-  const bottomRef = useRef(null);
   const [sceneImage, setSceneImage] = useState(null);
   const [imageLoading, setImageLoading] = useState(false);
+  const bottomRef = useRef(null);
 
   useEffect(() => {
     if (bottomRef.current) {
@@ -46,48 +46,47 @@ export default function App() {
     }
   };
 
-const sendMessage = async (userMessage, currentHistory) => {
-  setLoading(true);
-  setError(null);
-  setChoices([]);
-  setSceneImage(null);
-  setImageLoading(true);
+  const sendMessage = async (userMessage, currentHistory) => {
+    setLoading(true);
+    setError(null);
+    setChoices([]);
+    setImageLoading(true);
 
-  const newHistory = [
-    ...currentHistory,
-    { role: 'user', content: userMessage }
-  ];
+    const newHistory = [
+      ...currentHistory,
+      { role: 'user', content: userMessage }
+    ];
 
-  try {
-    const responseText = await generateStoryResponse(newHistory);
-    const { storyText: newStory, choices: newChoices } = parseResponse(responseText);
+    try {
+      const responseText = await generateStoryResponse(newHistory);
+      const { storyText: newStory, choices: newChoices } = parseResponse(responseText);
 
-    setHistory([
-      ...newHistory,
-      { role: 'assistant', content: responseText }
-    ]);
+      setHistory([
+        ...newHistory,
+        { role: 'assistant', content: responseText }
+      ]);
 
-    setStoryLog(prev => [...prev, {
-      playerChoice: currentHistory.length > 0 ? userMessage : null,
-      scene: newStory
-    }]);
+      setStoryLog(prev => [...prev, {
+        playerChoice: currentHistory.length > 0 ? userMessage : null,
+        scene: newStory
+      }]);
 
-    setChoices(newChoices.length > 0 ? newChoices : INITIAL_CHOICES);
-    analyzeMusicForScene(newStory);
+      setChoices(newChoices.length > 0 ? newChoices : INITIAL_CHOICES);
+      analyzeMusicForScene(newStory);
 
-    generateSceneImage(newStory)
-      .then(url => setSceneImage(url))
-      .catch(() => setSceneImage(null))
-      .finally(() => setImageLoading(false));
+      generateSceneImage(newStory)
+        .then(url => setSceneImage(url))
+        .catch(() => setSceneImage(null))
+        .finally(() => setImageLoading(false));
 
-  } catch (err) {
-    setError('The story faltered. Check your connection and try again.');
-    setChoices(INITIAL_CHOICES);
-    setImageLoading(false);
-  } finally {
-    setLoading(false);
-  }
-};
+    } catch (err) {
+      setError('The story faltered. Check your connection and try again.');
+      setChoices(INITIAL_CHOICES);
+      setImageLoading(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChoice = (choice) => {
     setStarted(true);
@@ -96,8 +95,17 @@ const sendMessage = async (userMessage, currentHistory) => {
 
   return (
     <div className="app-shell">
+
+      {/* ── Background image layer ─────────────────────────── */}
+      <div
+        className="scene-bg"
+        style={{ backgroundImage: sceneImage ? `url(${sceneImage})` : 'none' }}
+      />
+      <div className="scene-bg-overlay" />
+
       {/* ── Left: Story Engine ─────────────────────────────── */}
       <main className="story-pane">
+
         <header className="story-header">
           <div className="header-eyebrow">A chronicle of the last city</div>
           <h1 className="header-title">
@@ -120,7 +128,6 @@ const sendMessage = async (userMessage, currentHistory) => {
           </div>
         )}
 
-        {/* Story log */}
         <div className="story-log" data-testid="story-log">
           {storyLog.map((entry, i) => {
             const isCurrent = i === storyLog.length - 1;
@@ -132,7 +139,7 @@ const sendMessage = async (userMessage, currentHistory) => {
                     {entry.playerChoice}
                   </div>
                 )}
-                <div className="log-story" style={{ opacity: isCurrent ? 1 : 0.45 }}>
+                <div className="log-story" style={{ opacity: isCurrent ? 1 : 0.4 }}>
                   {entry.scene.split('\n\n').map((para, j) => (
                     <p key={j}>{para}</p>
                   ))}
@@ -152,31 +159,19 @@ const sendMessage = async (userMessage, currentHistory) => {
           <div ref={bottomRef} />
         </div>
 
-        {/* ── Scene Image ───────────────────────────────────── */}
-        {(sceneImage || imageLoading) && (
-          <div className="scene-image-area">
-            {imageLoading && (
-              <div className="image-loading">Painting the scene...</div>
-                                                    )}
-            {sceneImage && !imageLoading && (
-            <img
-            src={sceneImage}
-            alt="Scene illustration"
-            className="scene-image"
-            data-testid="scene-image"
-            />
-          )}
+        {imageLoading && (
+          <div className="image-painting">
+            <span className="painting-dot" />
+            Painting the scene...
           </div>
-          )}
+        )}
 
-        {/* Error */}
         {error && (
           <div className="error-banner" data-testid="error-message">
             {error}
           </div>
         )}
 
-        {/* Choices */}
         <div className="choices-area" data-testid="choices-container">
           {choices.map((choice, i) => (
             <button
@@ -208,16 +203,16 @@ const styles = `
 
   :root {
     --bg-base:      #0d0f14;
-    --bg-surface:   #13161e;
-    --bg-elevated:  #1a1e2a;
-    --border:       #2a2e3d;
+    --bg-surface:   rgba(10, 12, 18, 0.82);
+    --bg-elevated:  rgba(20, 24, 34, 0.75);
+    --border:       rgba(60, 70, 90, 0.5);
+    --border-solid: #2a2e3d;
     --text-primary: #e8e0d0;
     --text-muted:   #7a7a8a;
     --text-faint:   #4a4a5a;
     --gold:         #c9a84c;
     --gold-dim:     #8a6f30;
     --rain:         #4a7fa5;
-    --rain-dim:     #2d5270;
     --danger:       #8b3a3a;
     --font-serif:   Georgia, 'Times New Roman', serif;
     --font-mono:    'Courier New', Courier, monospace;
@@ -229,11 +224,44 @@ const styles = `
     color: var(--text-primary);
   }
 
+  /* ── Background image ── */
+  .scene-bg {
+    position: fixed;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-image 1.2s ease;
+    z-index: 0;
+  }
+
+  .scene-bg-overlay {
+    position: fixed;
+    inset: 0;
+    background:
+      linear-gradient(to right,
+        rgba(8, 10, 16, 0.94) 0%,
+        rgba(8, 10, 16, 0.78) 40%,
+        rgba(8, 10, 16, 0.55) 60%,
+        rgba(8, 10, 16, 0.88) 100%
+      ),
+      linear-gradient(to bottom,
+        rgba(8, 10, 16, 0.75) 0%,
+        rgba(8, 10, 16, 0.15) 25%,
+        rgba(8, 10, 16, 0.15) 75%,
+        rgba(8, 10, 16, 0.92) 100%
+      );
+    z-index: 1;
+  }
+
+  /* ── Layout ── */
   .app-shell {
     display: flex;
     height: 100vh;
     overflow: hidden;
     font-family: var(--font-serif);
+    position: relative;
+    z-index: 2;
   }
 
   .story-pane {
@@ -242,7 +270,7 @@ const styles = `
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: var(--bg-base);
+    background: transparent;
     border-right: 1px solid var(--border);
   }
 
@@ -250,15 +278,19 @@ const styles = `
     width: 340px;
     flex-shrink: 0;
     overflow-y: auto;
-    background: var(--bg-surface);
+    background: rgba(10, 12, 18, 0.88);
     padding: 24px 16px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
+  /* ── Header ── */
   .story-header {
     padding: 28px 36px 20px;
-    background: var(--bg-surface);
+    background: linear-gradient(to bottom, rgba(8,10,16,0.96), rgba(8,10,16,0.5));
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    backdrop-filter: blur(4px);
   }
 
   .header-eyebrow {
@@ -294,12 +326,14 @@ const styles = `
     background: linear-gradient(to right, var(--gold-dim), transparent);
   }
 
+  /* ── Opening card ── */
   .opening-card {
     margin: 24px 36px 0;
     padding: 20px 24px;
-    background: var(--bg-elevated);
+    background: rgba(14, 17, 26, 0.72);
     border: 1px solid var(--border);
     border-left: 3px solid var(--gold-dim);
+    backdrop-filter: blur(6px);
   }
 
   .opening-text {
@@ -309,6 +343,7 @@ const styles = `
     font-style: italic;
   }
 
+  /* ── Story log ── */
   .story-log {
     flex: 1;
     overflow-y: auto;
@@ -317,23 +352,29 @@ const styles = `
     flex-direction: column;
     gap: 20px;
     scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+    scrollbar-color: var(--border-solid) transparent;
   }
 
   .story-log::-webkit-scrollbar { width: 4px; }
-  .story-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .story-log::-webkit-scrollbar-thumb { background: var(--border-solid); border-radius: 2px; }
 
   .log-story {
     display: flex;
     flex-direction: column;
     gap: 14px;
     transition: opacity 0.3s;
+    padding: 18px 22px;
+    background: rgba(6, 8, 14, 0.68);
+    border-left: 2px solid rgba(138, 111, 48, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   .log-story p {
     font-size: 15.5px;
-    line-height: 1.8;
+    line-height: 1.85;
     color: var(--text-primary);
+    text-shadow: 0 1px 10px rgba(0,0,0,0.9);
   }
 
   .log-choice {
@@ -356,6 +397,7 @@ const styles = `
     line-height: 1;
   }
 
+  /* ── Loading dots ── */
   .log-loading {
     display: flex;
     gap: 6px;
@@ -378,48 +420,54 @@ const styles = `
     50%       { opacity: 1;   transform: scale(1.1); }
   }
 
+  /* ── Image painting indicator ── */
+  .image-painting {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 36px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    flex-shrink: 0;
+  }
+
+  .painting-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    animation: pulse 1.4s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  /* ── Error ── */
   .error-banner {
     margin: 0 36px 12px;
     padding: 12px 16px;
-    background: rgba(139, 58, 58, 0.15);
+    background: rgba(139, 58, 58, 0.2);
     border: 1px solid var(--danger);
     border-left: 3px solid var(--danger);
     font-family: var(--font-mono);
     font-size: 12px;
     color: #c47a7a;
     letter-spacing: 0.03em;
+    backdrop-filter: blur(4px);
   }
 
-  .scene-image-area {
-  padding: 0 36px 16px;
-  flex-shrink: 0;
-}
-
-.image-loading {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--gold-dim);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 12px 0;
-}
-
-.scene-image {
-  width: 100%;
-  max-height: 300px;
-  object-fit: cover;
-  border: 1px solid var(--border);
-  display: block;
-}
-
+  /* ── Choices ── */
   .choices-area {
-    padding: 16px 36px 24px;
+    padding: 12px 36px 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     flex-shrink: 0;
     border-top: 1px solid var(--border);
-    background: var(--bg-surface);
+    background: linear-gradient(to top, rgba(8,10,16,0.96), rgba(8,10,16,0.65));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   .choice-btn {
@@ -427,10 +475,10 @@ const styles = `
     align-items: flex-start;
     gap: 14px;
     width: 100%;
-    padding: 13px 18px;
-    background: var(--bg-elevated);
+    padding: 11px 16px;
+    background: rgba(16, 20, 30, 0.65);
     border: 1px solid var(--border);
-    border-left: 3px solid var(--gold-dim);
+    border-left: 2px solid var(--gold-dim);
     color: var(--text-primary);
     font-family: var(--font-serif);
     font-size: 14px;
@@ -438,12 +486,13 @@ const styles = `
     text-align: left;
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s, color 0.15s;
+    backdrop-filter: blur(4px);
   }
 
   .choice-btn:hover:not(:disabled) {
     border-color: var(--gold);
     border-left-color: var(--gold);
-    background: #1e2230;
+    background: rgba(30, 34, 48, 0.85);
     color: var(--gold);
   }
 
@@ -464,14 +513,16 @@ const styles = `
   .choice-btn:hover:not(:disabled) .choice-num { color: var(--gold); }
   .choice-text { flex: 1; }
 
+  /* ── Responsive ── */
   @media (max-width: 900px) {
     .app-shell { flex-direction: column; }
     .story-pane { height: 60vh; border-right: none; border-bottom: 1px solid var(--border); }
     .sidebar-pane { width: 100%; height: 40vh; }
     .story-header { padding: 18px 20px 14px; }
     .story-log { padding: 16px 20px; }
-    .choices-area { padding: 12px 20px 16px; }
+    .choices-area { padding: 10px 20px 14px; }
     .opening-card { margin: 16px 20px 0; }
     .error-banner { margin: 0 20px 12px; }
+    .image-painting { padding: 6px 20px; }
   }
 `;
