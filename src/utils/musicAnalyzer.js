@@ -1,15 +1,12 @@
 export async function analyzeSceneMood(sceneText) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch('/api/chat', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
+      system: '',
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 200,
       messages: [{
         role: 'user',
         content: `Analyze this story scene and return ONLY a JSON object. No explanation, no markdown.
@@ -30,7 +27,7 @@ Choose the 2 most fitting moods and the most fitting pacing.`
   });
 
   const data = await response.json();
-  if (!response.ok) throw new Error(data?.error?.message || 'Music analysis failed');
+  if (!response.ok) throw new Error(data?.error || 'Music analysis failed');
 
   const text = data.content[0]?.text || '';
   const match = text.match(/\{[\s\S]*\}/);
