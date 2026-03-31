@@ -35,7 +35,7 @@ Players navigate a branching narrative as **Kennit**, a 31-year-old ex-soldier c
 ## ✦ Stack
 
 ```
-Frontend        React 18 + Vite
+Frontend        React 18 + Vite + TypeScript (partial migration)
 AI — Story      Anthropic Claude API (claude-opus-4-6)
 AI — Music      Anthropic Claude API (claude-haiku-4-5)
 AI — Images     OpenAI DALL-E 3
@@ -64,7 +64,12 @@ src/
     ├── api.js                Story generation — calls /api/chat
     ├── musicAnalyzer.js      Mood/pacing analysis — calls /api/chat
     ├── musicMatcher.js       Weighted scoring algorithm → best-fit piece
-    ├── musicDatabase.js      20 classical pieces with mood/pacing metadata
+	├── musicMatcher.ts       Weighted scoring algorithm → best-fit piece 
+(TypeScript)
+    ├── musicMatcher.js       Original JS version (retained for reference)
+    ├── musicDatabase.ts      20 classical pieces with typed interfaces 
+(TypeScript)
+    ├── musicDatabase.js      Original JS version (retained for reference)
     ├── imageGenerator.js     Image generation — calls /api/chat then /api/image
     ├── imageStyle.js         Visual lore prompt constraining DALL-E output
     ├── lore.js               World lore injected into every story prompt
@@ -296,6 +301,7 @@ Working with an LLM as the core engine surfaces testing problems that don't appe
 - [x] Phase 8 — Polish & portfolio prep (Valdris theme, README, coverage reporting, component tests)
 - [ ] Image generation tests (unit tests for imageGenerator.js and serverless handlers)
 - [ ] Phase 5 — Music layer depth (adaptive layering, transitions)
+- [x] Phase 9 — TypeScript introduction (musicDatabase.ts, musicMatcher.ts, typed interfaces, union types)
 
 ---
 
