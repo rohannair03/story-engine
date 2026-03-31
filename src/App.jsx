@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { generateStoryResponse } from './utils/api.js';
 import { parseResponse } from './utils/parseResponse.js';
 import { analyzeSceneMood } from './utils/musicAnalyzer.js';
-import { matchMusic } from './utils/musicMatcher.js';
+import { matchMusic } from './utils/musicMatcher';
 import MusicBrief from './components/MusicBrief.jsx';
 import { generateSceneImage } from './utils/imageGenerator.js';
 
@@ -25,16 +25,18 @@ export default function App() {
   const [imageLoading, setImageLoading] = useState(false);
   const [activeImage, setActiveImage] = useState(null); // currently visible bg image
 
-  const bottomRef = useRef(null);
   const storyLogRef = useRef(null);
   const entryRefs = useRef([]); // refs for each story entry div
 
   // Auto-scroll to bottom on new entries
   useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (storyLog.length > 0) {
+      const lastEntry = entryRefs.current[storyLog.length - 1];
+      if (lastEntry) {
+        lastEntry.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
-  }, [storyLog, loading]);
+}, [storyLog]);
 
   // IntersectionObserver — watch which entry is most visible, set its image as bg
   useEffect(() => {
@@ -198,8 +200,6 @@ export default function App() {
               <span className="dot" />
             </div>
           )}
-
-          <div ref={bottomRef} />
         </div>
 
         {imageLoading && (
