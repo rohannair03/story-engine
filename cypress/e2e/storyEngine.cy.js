@@ -114,7 +114,7 @@ describe('Story Engine', () => {
       cy.wait('@claudeAPI');
       cy.contains('Climb towards the dark shape that might be a cave').click();
       cy.wait('@claudeAPI');
-      cy.wrap(null).should(() => expect(callCount).to.equal(2));
+      cy.get('[data-testid="story-log"]').find('.story-entry').should('have.length', 2);
     });
   });
 
