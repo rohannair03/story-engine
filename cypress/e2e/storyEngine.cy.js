@@ -23,7 +23,7 @@ describe('Story Engine', () => {
 
   it('shows a loading indicator after clicking a choice', () => {
     cy.fixture('storyResponse').then((story) => {
-      cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+      cy.intercept('POST', '/api/chat', (req) => {
         if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
           req.reply({ body: story.musicAnalysis });
         } else {
@@ -37,7 +37,7 @@ describe('Story Engine', () => {
 
   it('displays story text after API responds', () => {
     cy.fixture('storyResponse').then((story) => {
-      cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+      cy.intercept('POST', '/api/chat', (req) => {
         if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
           req.reply({ body: story.musicAnalysis });
         } else {
@@ -52,7 +52,7 @@ describe('Story Engine', () => {
 
   it('hides the opening card after the first choice', () => {
     cy.fixture('storyResponse').then((story) => {
-      cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+      cy.intercept('POST', '/api/chat', (req) => {
         if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
           req.reply({ body: story.musicAnalysis });
         } else {
@@ -67,7 +67,7 @@ describe('Story Engine', () => {
 
   it('displays three choice buttons after story loads', () => {
     cy.fixture('storyResponse').then((story) => {
-      cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+      cy.intercept('POST', '/api/chat', (req) => {
         if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
           req.reply({ body: story.musicAnalysis });
         } else {
@@ -82,7 +82,7 @@ describe('Story Engine', () => {
 
   it('choice buttons contain the correct text', () => {
     cy.fixture('storyResponse').then((story) => {
-      cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+      cy.intercept('POST', '/api/chat', (req) => {
         if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
           req.reply({ body: story.musicAnalysis });
         } else {
@@ -102,7 +102,7 @@ describe('Story Engine', () => {
   it('clicking a choice triggers a new API call', () => {
     cy.fixture('storyResponse').then((story) => {
       let callCount = 0;
-      cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+      cy.intercept('POST', '/api/chat', (req) => {
         if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
           req.reply({ body: story.musicAnalysis });
         } else {
@@ -121,7 +121,7 @@ describe('Story Engine', () => {
   it('displays new scene text after making a choice', () => {
     cy.fixture('storyResponse').then((story) => {
       let callCount = 0;
-      cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+      cy.intercept('POST', '/api/chat', (req) => {
         if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
           req.reply({ body: story.musicAnalysis });
         } else {
@@ -140,7 +140,7 @@ describe('Story Engine', () => {
   it('shows the player choice in the story log', () => {
     cy.fixture('storyResponse').then((story) => {
       let callCount = 0;
-      cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+      cy.intercept('POST', '/api/chat', (req) => {
         if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
           req.reply({ body: story.musicAnalysis });
         } else {
@@ -159,7 +159,7 @@ describe('Story Engine', () => {
   it('previous scene is still visible after making a choice', () => {
     cy.fixture('storyResponse').then((story) => {
       let callCount = 0;
-      cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+      cy.intercept('POST', '/api/chat', (req) => {
         if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
           req.reply({ body: story.musicAnalysis });
         } else {
@@ -178,7 +178,7 @@ describe('Story Engine', () => {
   it('previous scene is faded compared to current scene', () => {
     cy.fixture('storyResponse').then((story) => {
       let callCount = 0;
-      cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+      cy.intercept('POST', '/api/chat', (req) => {
         if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
           req.reply({ body: story.musicAnalysis });
         } else {
@@ -200,7 +200,7 @@ describe('Story Engine', () => {
   // ── Error handling ─────────────────────────────────────────────────────────
 
   it('displays an error message when the API fails', () => {
-    cy.intercept('POST', 'https://api.anthropic.com/v1/messages', {
+    cy.intercept('POST', '/api/chat', {
       statusCode: 500,
       body: { error: { message: 'Internal Server Error' } }
     }).as('claudeAPIError');
@@ -210,7 +210,7 @@ describe('Story Engine', () => {
   });
 
   it('does not crash when the API fails', () => {
-    cy.intercept('POST', 'https://api.anthropic.com/v1/messages', {
+    cy.intercept('POST', '/api/chat', {
       statusCode: 500,
       body: { error: { message: 'Internal Server Error' } }
     }).as('claudeAPIError');
@@ -229,7 +229,7 @@ describe('Story Engine', () => {
 
     it('shows the music sidebar after the story starts', () => {
       cy.fixture('storyResponse').then((story) => {
-        cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+        cy.intercept('POST', '/api/chat', (req) => {
           if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
             req.reply({ body: story.musicAnalysis });
           } else {
@@ -244,7 +244,7 @@ describe('Story Engine', () => {
 
     it('shows mood tags after analysis completes', () => {
       cy.fixture('storyResponse').then((story) => {
-        cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+        cy.intercept('POST', '/api/chat', (req) => {
           if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
             req.reply({ body: story.musicAnalysis });
           } else {
@@ -260,7 +260,7 @@ describe('Story Engine', () => {
 
     it('shows a pacing tag after analysis completes', () => {
       cy.fixture('storyResponse').then((story) => {
-        cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+        cy.intercept('POST', '/api/chat', (req) => {
           if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
             req.reply({ body: story.musicAnalysis });
           } else {
@@ -276,7 +276,7 @@ describe('Story Engine', () => {
 
     it('shows matched piece titles after analysis completes', () => {
       cy.fixture('storyResponse').then((story) => {
-        cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+        cy.intercept('POST', '/api/chat', (req) => {
           if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
             req.reply({ body: story.musicAnalysis });
           } else {
@@ -292,7 +292,7 @@ describe('Story Engine', () => {
 
     it('shows YouTube and Spotify links for each piece', () => {
       cy.fixture('storyResponse').then((story) => {
-        cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+        cy.intercept('POST', '/api/chat', (req) => {
           if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
             req.reply({ body: story.musicAnalysis });
           } else {
@@ -310,7 +310,7 @@ describe('Story Engine', () => {
     it('updates the music brief after a new choice is made', () => {
       cy.fixture('storyResponse').then((story) => {
         let callCount = 0;
-        cy.intercept('POST', 'https://api.anthropic.com/v1/messages', (req) => {
+        cy.intercept('POST', '/api/chat', (req) => {
           if (req.body.messages?.[0]?.content?.includes?.('Analyze this story scene')) {
             req.reply({ body: story.musicAnalysis });
           } else {
