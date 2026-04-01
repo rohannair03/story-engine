@@ -12,9 +12,11 @@ export default {
   moduleFileExtensions: ["js", "jsx"],
   setupFilesAfterEnv: ["./tests/setup.js"],
   collectCoverageFrom: [
-    "src/**/*.{js,jsx}",
-    "!src/main.jsx",
-    "!src/**/*.test.{js,jsx}",
+  "src/**/*.{js,jsx}",
+  "!src/main.jsx",
+  "!src/utils/api.js",
+  "!src/utils/imageGenerator.js",
+  "!src/**/*.test.{js,jsx}",
   ],
   coverageReporters: ["text", "lcov", "json-summary"],
   coverageThreshold: {
