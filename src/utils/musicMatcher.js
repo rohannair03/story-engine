@@ -1,4 +1,4 @@
-import { musicDatabase } from './musicDatabase.ts';
+import { musicDatabase } from './musicDatabase.js';
 
 function scorePiece(piece, targetMoods, targetPacing) {
   let score = 0;

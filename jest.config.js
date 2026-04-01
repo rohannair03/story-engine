@@ -10,19 +10,13 @@ export default {
     "^.+\\.(js|jsx)$": "babel-jest",
   },
   moduleFileExtensions: ["js", "jsx"],
-  setupFilesAfterEnv: ["@testing-library/jest-dom"],
-
-  // ── Coverage config ──────────────────────────────────────────────────────
+  setupFilesAfterEnv: ["./tests/setup.js"],
   collectCoverageFrom: [
     "src/**/*.{js,jsx}",
-    "!src/main.jsx",          // entry point — nothing to test
+    "!src/main.jsx",
     "!src/**/*.test.{js,jsx}",
   ],
-  coverageReporters: [
-    "text",           // printed to terminal
-    "lcov",           // for artifact upload / coverage badges
-    "json-summary",   // for the CI step summary script
-  ],
+  coverageReporters: ["text", "lcov", "json-summary"],
   coverageThreshold: {
     global: {
       statements: 70,
