@@ -9,7 +9,7 @@ const mockValidResponse = {
 
 const mockErrorResponse = {
   ok: false,
-  json: async () => ({ error: { message: 'API error' } })
+  json: async () => ({ error: 'API error'})
 };
 
 const mockMalformedResponse = {
@@ -70,11 +70,11 @@ describe('analyzeSceneMood', () => {
     await expect(analyzeSceneMood('test')).rejects.toThrow('No JSON in music analysis response');
   });
 
-  it('calls the Anthropic API endpoint', async () => {
+  it('calls the proxy API endpoint', async () => {
     global.fetch.mockResolvedValue(mockValidResponse);
     await analyzeSceneMood('test scene');
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://api.anthropic.com/v1/messages',
+      '/api/chat',
       expect.any(Object)
     );
   });
